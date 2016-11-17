@@ -50,6 +50,7 @@ def apart_tags(sentences):
         line = re.sub(left_tag, '> ', line)
         line = re.sub(right_tag, ' <', line)
         line = re.sub(blank, ' ', line)
+        line = line.strip()
         new_lines.append(line)
     return new_lines
 
@@ -58,6 +59,15 @@ def trans4glove(sentences, output_path):
     with open(output_path, 'a', encoding='utf8') as output_data:
         for i in sentences:
             output_data.write(i + '\n')
+
+
+def sentences2word(sentences, output_path):
+    word_lists = []
+    for line in sentences:
+        words = line.strip().split()
+        word_lists.append(words)
+    word_lists = np.array(word_lists)
+    np.save(output_path, word_lists)
 
 
 def process(path):
@@ -71,6 +81,8 @@ def process(path):
     # pure_sentences = np.array(pure_sentences)
     final_sentences = apart_tags(pure_sentences)
     # trans4glove(final_sentences, 'data/glove_input.txt')
+    words_output = path.split('.')[0].lower() + '.npy'
+    sentences2word(final_sentences, words_output)
 
 
 if __name__ == '__main__':
