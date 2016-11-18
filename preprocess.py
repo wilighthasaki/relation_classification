@@ -3,6 +3,7 @@
 """
 import numpy as np
 import re
+import helper
 
 
 def extract_sentences(file_path):
@@ -37,7 +38,7 @@ def remove_punctuations(sentences):
     for line in sentences:
         line = re.sub(a, '', line)
         line = re.sub(r, '', line)
-        processed_sentences.append(line.rstrip())
+        processed_sentences.append(line.rstrip().lower())
     return processed_sentences
 
 
@@ -70,6 +71,41 @@ def sentences2word(sentences, output_path):
     np.save(output_path, word_lists)
 
 
+def build_map(text_path="data/glove_input.txt", tag_path=''):
+    """
+    建立id到
+    :param train_path:
+    :return:
+    """
+    train_data = np.load('data/train_file.npy')
+    test_data = np.load('data/test_file_full.npy')
+    words = []
+    for i in train_data:
+        for j in i:
+            if j not in words:
+                words.append(j)
+    for i in test_data:
+        for j in i:
+            if j not in words:
+                words.append(j)
+
+    labels = list(set(np.load('data/targets.npy')))
+    word2id = dict(zip(words, range(1, len(words) + 1)))
+    label2id = dict(zip(labels, range(1, len(labels) + 1)))
+    id2word = dict(zip(range(1, len(words) + 1), words))
+    id2label = dict(zip(range(1, len(labels) + 1), labels))
+    id2word[0] = "<PAD>"
+    id2label[0] = "<PAD>"
+    word2id["<PAD>"] = 0
+    label2id["<PAD>"] = 0
+    id2word[len(words) + 1] = "<NEW>"
+    word2id["<NEW>"] = len(words) + 1
+
+    helper.save_map(id2word, id2label)
+
+    return word2id, id2word, label2id, id2label
+
+
 def process(path):
     """
     整体流程
@@ -83,6 +119,7 @@ def process(path):
     # trans4glove(final_sentences, 'data/glove_input.txt')
     words_output = path.split('.')[0].lower() + '.npy'
     sentences2word(final_sentences, words_output)
+    np.save('data/' + path.split('/')[1].split('_')[0].lower() + '_targets.npy', targets)
 
 
 if __name__ == '__main__':
@@ -91,3 +128,4 @@ if __name__ == '__main__':
     train_path = 'data/TRAIN_FILE.TXT'
     process(train_path)
     process(test_path)
+    # build_map()
